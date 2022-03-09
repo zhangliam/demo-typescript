@@ -124,10 +124,10 @@ let log: Log = (
 	message,
 	userId = 'empty'
 ) => {
-	console.log(message, userId)
+	// console.log(message, userId)
 }
 
-// 重载
+// 重载函数
 type Reserve = {
 	(form: Date, to: Date, destination: string): Reservation
 	(form: Date, destination: string): Reservation
@@ -147,3 +147,35 @@ let reserve: Reserve = (
 		}
 }
 
+
+// 多态
+function filter(ary: any, f: Function) {
+	let result = []
+	for(let i = 0; i < ary.lenth; i++) {
+		let item = ary[i]
+		if( f(item) ) {
+			result.push(item)
+		}
+	}
+	return result
+}
+
+/* 泛型参数: 在类型层面施加约束的占位类型，也称多态类型参数 */
+
+// <T>在调用签名中声明, ts将在调用Filter类型的函数时为T绑定具体类型
+type Filter = {
+	// (array: number[], f: (item: number) => boolean): number[]
+	// (array: string[], f: (item: string) => boolean): string[]
+	<T>(array: T[], f: (item: T) => boolean): T[]
+}
+
+// 如需把T的作用域限定在类型别名Filter中，ts则需调用Filter时显式绑定类型
+type _Filter<T> = {
+	(array: T[], f: (item: T) => boolean): T[]
+}
+// let filterInstance: _Filter<number> = (array, f) => {}
+
+// ts推导result类型为{}报错, T默认{}, 需显式注解Promise泛型参数
+// let promise = new Promise(resolve => resolve(45))
+let promise = new Promise<number>(resolve => resolve(45))
+promise.then( result => result * 4)
