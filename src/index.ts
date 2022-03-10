@@ -151,7 +151,7 @@ let reserve: Reserve = (
 // 多态
 function filter(ary: any, f: Function) {
 	let result = []
-	for(let i = 0; i < ary.lenth; i++) {
+	for(let i = 0; i < ary.length; i++) {
 		let item = ary[i]
 		if( f(item) ) {
 			result.push(item)
