@@ -119,7 +119,7 @@ type _log = (message: string, userId?: string) => void
 type _sumVariadicSafe = (...numbers: number[]) => number
 
 // for example
-type Log = ( message: string, userId?: string ) => void;
+type Log = ( message: string, userId?: string ) => void
 let log: Log = (
 	message,
 	userId = 'empty'
@@ -127,15 +127,16 @@ let log: Log = (
 	// console.log(message, userId)
 }
 
-// 重载函数
+// 重载函数: 有多个调用签名的函数
 type Reserve = {
 	(form: Date, to: Date, destination: string): Reservation
 	(form: Date, destination: string): Reservation
+	(destination: string): Reservation
 }
 
 let reserve: Reserve = (
-	from: Date,
-	toOrDestination: Date | string,
+	from?: Date,
+	toOrDestination?: Date | string,
 	destination?: string
 	) => {
 		if(toOrDestination instanceof Date && destination !== undefined) {
@@ -146,7 +147,6 @@ let reserve: Reserve = (
 			// 预定往返
 		}
 }
-
 
 // 多态
 function filter(ary: any, f: Function) {
@@ -175,7 +175,193 @@ type _Filter<T> = {
 }
 // let filterInstance: _Filter<number> = (array, f) => {}
 
+// 具名函数调用签名
+function filter<T>(array: T[], f: (item: T) => boolean ): T[] { }
+
+
+function mapNode<T extends TreeNode>(
+	node: T,
+	f: (value: string) => string
+): T {
+	return {
+		...node,
+		value: f(node.value)
+	}
+}
+
 // ts推导result类型为{}报错, T默认{}, 需显式注解Promise泛型参数
 // let promise = new Promise(resolve => resolve(45))
 let promise = new Promise<number>(resolve => resolve(45))
 promise.then( result => result * 4)
+
+
+// 多个约束的受限多态
+type HasSides = { numberOfSides: number }
+type SideHaveLengh = { sideLength: number }
+
+function logPerimeter<
+	Shape extends HasSides & SideHaveLengh
+>(s: Shape): Shape {
+	console.log(s.numberOfSides * s.sideLength)
+	return s
+}
+
+type Square = HasSides & SideHaveLengh
+let _square = Square = { numberOfSides: 4, sideLength: 3 }
+logPerimeter(_square)
+
+
+// 受限的多态模拟变长参数
+// function call(
+// 	f: (...args: unknown[]) => unknown,
+// 	...args: unknown[]
+// ): unknown {
+// 	return f(...args)
+// }
+function call<T extends unknown[], R>(
+	f: (...args: T) => R,
+	...args: T
+): R {
+	return f(...args)
+}
+
+function fill(length: number, value: string): string[] {
+	return Array.from({length}, () => value)
+}
+
+
+/* 类和接口 */
+
+// ------ 类:
+type Color = 'Black' | 'White'
+type File = 'A' | 'B' | 'C' | 'D' | 'E' | 'F'
+type Rank = 1 | 2 | 3 | 4 | 5 | 6
+
+// 表游戏回合
+class Game {
+	private piece = Game.makePieces()
+	private static makePieces() {
+		return [
+			new King('White', 'E', 1),
+			new Queen('Black', 'D', 8),
+			//...
+		]
+	}
+}
+
+// 表棋子坐标
+class Position {
+	constructor (
+		private file: File,
+		private rank: Rank
+	) {}
+
+	distanceFrom(position: Position) {
+		return {
+			rank: Math.abs(position.rank - this.rank),
+			file: Math.abs(position.file.charCodeAt(0) - this.charCodeAt(0))
+		}
+	}
+}
+
+// 表棋子 abstract: 抽象类不允许实例化，抽象类中的抽象方法必须在子类中实现
+abstract class Piece {
+	protected position: Position
+	abstract canMoveTo(position: Position): boolean
+	constructor(
+		private readonly color: Color
+		file: File
+		rank: Rank
+	) {
+		this.position = new Position(file, rank)
+	}
+
+	moveTo(position: Position) {
+		this.position = position
+	}
+}
+
+// 棋子分类...
+class King extends Piece {
+	canMoveTo(position: Position) {
+		let distance = this.position.distanceFrom(position)
+		return distance.rank < 2 && distance.file < 2
+	}
+}
+class Queen extends Piece {}
+
+
+// ------ 接口:
+
+type Food = {
+	calories: number
+	tasty: boolean
+}
+type Sushi = Food & {
+	salty: boolean
+}
+type Cake = Food & {
+	sweet: boolean
+}
+
+// 等价于
+
+interface Food {
+	calories: number
+	tasty: boolean
+}
+interface Sushi extends Food {
+	salty: boolean
+}
+interface Cake extends Food {
+	sweet: boolean
+}
+
+/*
+
+类和接口区别(例子不赘述)
+
+1. 类型别名更通用，接口声明右侧必须为结构
+2. 扩展接口赋值的检查
+3. 声明合并
+3. 声明合并
+*/ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
