@@ -237,6 +237,11 @@ type Color = 'Black' | 'White'
 type File = 'A' | 'B' | 'C' | 'D' | 'E' | 'F'
 type Rank = 1 | 2 | 3 | 4 | 5 | 6
 
+// 属性修饰符
+// private: 当前类的实例访问
+// public: 无限制
+// protected: 当前类及其子类的实例访问
+
 // 表游戏回合
 class Game {
 	private piece = Game.makePieces()
@@ -296,6 +301,7 @@ class Queen extends Piece {}
 type Food = {
 	calories: number
 	tasty: boolean
+	
 }
 type Sushi = Food & {
 	salty: boolean
@@ -319,17 +325,131 @@ interface Cake extends Food {
 
 /*
 
-类和接口区别(例子不赘述)
-
-1. 类型别名更通用，接口声明右侧必须为结构
-2. 扩展接口赋值的检查
-3. 声明合并
+类和接口区别
+1. 类型别名更通用(类型表达式&,|诸如此类), 接口声明则不行右侧必须为结构
+2. 扩展接口赋值的检查(属性类型不同也会报错)
 3. 声明合并
 */ 
 
+// 声明合并
+interface User {
+	name: string
+}
+
+interface User {
+	age: number
+}
+
+// 声明两个User接口, ts将自动合并为一个(ps:继承的时候同样会进行类型检查)
+let _interUser: User = {
+	name: 'Ashley',
+	age: 30
+}
 
 
+// 接口可以声明实例属性, 但不能带可见性修饰符(private, protected, public)
 
+interface Animal {
+	readonly name: string
+	eat(food: string): void
+	sleep(hours: number): void
+}
+
+interface Feline() {
+	meow(): void
+}
+
+class Cat implements Animal, Feline {
+	name: 'Whiskers'
+
+	eat(food: string) {
+		console.log(`Eat ${ food }`)
+	}
+
+	sleep(hours: number) {
+		console.log(`Sleep ${ hours }`)
+	}
+
+	meow() {
+		console.log('meow~')
+	}
+}
+
+/* 
+	Q: 实现接口or扩展抽象类
+	A: 1. 接口是对结构建模的方式. 在值层面可表示对象, 数组, 函数, 类或类的实例. 接口不生成js代码, 只存在于编译时
+		 2. 抽象类只对类建模, 而且生成运行时代码(即js类). 抽象类有构造方法, 可以提供默认实现, 属性和方法设置访问修饰符. 接口则不行
+*/
+
+
+// 类是结构化类型
+// ts根据结构比较类, 与类的名称无关, 类与其他类型是否兼容看结构, 如常规对象定义同样属性或方法也可兼容
+class Zebra {
+	trot() {
+		//...
+	}
+}
+
+class Poodle {
+	trot() {
+		//...
+	}
+}
+
+function ambleAround(animal: Zebra) {
+	animal.trot()
+}
+
+let zebra = new Zebra
+let poodle = new Poodle
+
+abbleAround(zebra)  // OK 
+abbleAround(poodle) // OK
+
+
+// 类既声明值也声明类型
+
+// 值
+let a = 1999
+function b() {}
+
+// 类型
+type a = number
+interface b {
+	(): void
+}
+
+// StringDatabase类实现简单数据库
+type State = {
+	[key: string]: string
+}
+
+// 实例类型StringDatabase
+interface StringDatabase {
+	state: State
+	get(key: string): string | null
+	set(key: string, value: string): void
+}
+
+class StringDatabase {
+	state: State = {}
+
+	get(key: string): string | null {
+		return key in this.state ? this.state[key] : null
+	}
+
+	set(key: string, value: string): void {
+		this.state[key] = value
+	}
+
+	static from(state: State) {
+		let db = new StringDatabase
+		for(let key in state) {
+			db.set(key, state[key])
+		}
+		return db
+	}
+}
 
 
 
