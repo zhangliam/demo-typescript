@@ -424,15 +424,22 @@ type State = {
 	[key: string]: string
 }
 
-// 实例类型StringDatabase
+// StringDatabase实例类型
 interface StringDatabase {
 	state: State
 	get(key: string): string | null
 	set(key: string, value: string): void
 }
 
+// StringDatabase构造方法
+interface StringDatabaseConstructor {
+	new(state?: State): StringDatabase
+	from(state: State): StringDatabase
+}
+
 class StringDatabase {
 	state: State = {}
+	constructor(public state: State = {}) {}
 
 	get(key: string): string | null {
 		return key in this.state ? this.state[key] : null
@@ -451,6 +458,116 @@ class StringDatabase {
 	}
 }
 
+// 综上, 类声明不仅在值层面和类型层面生成相关内容, 而且在类型层面生成了两部门内容: 一部分表示类的实例，另一部分表示类的构造方法
+
+
+// ------混入
+class User {
+	private id: string = '3'
+	private name: string = 'Emma Gluzman'
+
+	debug(): void {
+		console.log(this.id + this.name)
+	}
+}
+
+type ClassConstructor = new(...args: any[]) => T
+
+function withEzDebug<C extends ClassConstructor<{
+	// 为ClassConstructor绑定结构类型确保传入此构造方法定义了getDebugValue函数
+ 	getDebugValue(): object 
+}>>(Class: C) {
+	return class extends Class {
+		// 不考虑构造方法汇中逻辑
+		// constructor(...args: any[]) {
+		// 	super(...args)
+		// }
+		debug() {
+			let Name = Class.constructor.name
+			let value = this.getDebugValue()
+			return `Name ${ JSON.stringify(value) } `
+		}
+	}
+}
+
+class HardToDebugUser {
+	constructor(
+		private id: string,
+		private firstName: string,
+		private lastName: string
+	) {} 
+
+	getDebugValue() {
+		return {
+			id: this.id,
+			name: this.firstName + ' ' + this.lastName
+		}
+	}
+}
+
+let mixinUser = withEzDebug(HardToDebugUser)
+let insmixinUser = new mixinUser(3, 'Emma', 'Gluzman')
+insmixinUser.debug()
+
+
+// ------ 类实现常见设计模式
+
+// 工厂模式
+interface Shoe {
+	purpose: string
+}
+
+class BalletFlat implements Shoe {
+	purpose = 'dancing'
+}
+
+class Boot implements Shoe {
+	purpose = 'woodcutting'
+}
+
+class Sneaker implements Shoe {
+	purpose = 'walking'
+}
+
+let ShoeFactory = {	
+	create(type: 'balletFlat' | 'boot' | 'sneaker'): Shoe {
+		switch(type) {
+			case 'balletFlat': return new BalletFlat
+			case 'boot': return new Boot
+			case 'sneaker': return new Sneaker
+		}
+	}
+}
+
+
+// 建造者模式
+class RequestBuilder {
+	private url: string | null = null 
+	private method: 'get' | 'post' | null = null 
+	private data: object | null = {} 
+
+	setURL(url: string):this {
+		this.url = url
+		return this
+	}
+
+	setMethod(method: 'get' | 'post'):this {
+		this.method = method
+		return this
+	}
+
+	setData(data: object):this {
+		this.data = data
+	}
+
+	send() {}
+}
+
+new RequestBuilder()
+	.setURL('/users')
+	.setMethod('get')
+	.setData({ firstName: 'Anna' })
+	.send()
 
 
 
