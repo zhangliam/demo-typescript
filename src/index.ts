@@ -530,7 +530,7 @@ class Sneaker implements Shoe {
 }
 
 let ShoeFactory = {	
-	create(type: 'balletFlat' | 'boot' | 'sneaker'): Shoe {
+	create(type: 'balletFlat' | 'boot' | 'sneaker'):< T extends Shoe >{
 		switch(type) {
 			case 'balletFlat': return new BalletFlat
 			case 'boot': return new Boot
