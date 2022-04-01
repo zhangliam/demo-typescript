@@ -207,7 +207,7 @@ function logPerimeter<
 }
 
 type Square = HasSides & SideHaveLengh
-let _square = Square = { numberOfSides: 4, sideLength: 3 }
+let _square: Square = { numberOfSides: 4, sideLength: 3 }
 logPerimeter(_square)
 
 
@@ -461,7 +461,7 @@ class StringDatabase {
 // 综上, 类声明不仅在值层面和类型层面生成相关内容, 而且在类型层面生成了两部门内容: 一部分表示类的实例，另一部分表示类的构造方法
 
 
-// ------混入
+// ------ 混入
 class User {
 	private id: string = '3'
 	private name: string = 'Emma Gluzman'
@@ -471,7 +471,7 @@ class User {
 	}
 }
 
-type ClassConstructor = new(...args: any[]) => T
+type ClassConstructor<T> = new(...args: any[]) => T
 
 function withEzDebug<C extends ClassConstructor<{
 	// 为ClassConstructor绑定结构类型确保传入此构造方法定义了getDebugValue函数
@@ -530,7 +530,7 @@ class Sneaker implements Shoe {
 }
 
 let ShoeFactory = {	
-	create(type: 'balletFlat' | 'boot' | 'sneaker'):< T extends Shoe >{
+	create(type: 'balletFlat' | 'boot' | 'sneaker'): Shoe {
 		switch(type) {
 			case 'balletFlat': return new BalletFlat
 			case 'boot': return new Boot
@@ -568,6 +568,79 @@ new RequestBuilder()
 	.setMethod('get')
 	.setData({ firstName: 'Anna' })
 	.send()
+
+
+// final: 标记类不可拓展 & 方法标记不可覆盖
+// 实现不可拓展 & 可实例化
+class MessageQueue {
+	private constructor(private messages: string[]) {}
+	static create(messages: string[]) {
+		return new MessageQueue(messages)
+	}
+}
+
+
+/* 类型进阶 */
+
+// ------ 函数型变
+// 不变T & 协变:<T & 逆变:>T & 双变<:T 或 >:T
+// ts对预期的结构, 还可以使用属性的类型<:预期类型的结构, 但是不能传入属性的类型是预期类型的超类型结构. 
+// 在类型上, ts对结构(对象和类)的属性类型进行了协变. 如想保证A对象可赋值给B对象, A对象每个属性必须<:B对象对应属性
+	
+class Animal {}
+
+class Brid extends Animal {
+	chirp() {}
+}
+
+class Crow extends Brid {
+	caw() {}
+}
+
+//  Crow为Brid子类型, Brid为Animal子类型, 所以 Crow :< Brid :< Animal
+
+function chirp(brid: Brid): Brid {
+	brid.chirp()
+	return brid
+}
+
+// 细化
+type Unit = 'cm' | 'px' | '%'
+
+let _units: Unit[] = ['cm', 'px', '%']
+
+function parseUnit(value: string): Unit | null {
+	for(let i = 0; i < _units.length; i++) {
+		if(value.endsWith(_units[i])) {
+			return units[i]	
+		}
+	}
+	return null
+}
+
+type Width = {
+	unit: Unit,
+	value: number
+}
+
+function parseWidth(width: number | string | null | undefined): Width | null {
+
+	if(width == null) {
+		return null
+	}
+
+	if(typeof width === 'number') {
+		return { unit: 'px', value: width}
+	}
+
+	let unit = parseUnit(width) 
+	if(unit) {
+		return { unit, value: parseFloat(width) }
+	}
+
+}
+
+
 
 
 
