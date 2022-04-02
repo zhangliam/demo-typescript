@@ -363,7 +363,7 @@ class Cat implements Animal, Feline {
 	name: 'Whiskers'
 
 	eat(food: string) {
-		console.log(`Eat ${ food }`)
+		console.log(`Eat ${ food }`)s
 	}
 
 	sleep(hours: number) {
@@ -639,6 +639,163 @@ function parseWidth(width: number | string | null | undefined): Width | null {
 	}
 
 }
+
+
+/* 对象类型进阶 */
+
+// "键入" 运算符
+type APIResponse = {
+	user: {
+		userId: string,
+		friendList: {
+			count: number,
+			friends: {
+				firstName: string,
+				lastName: string,
+			}[]
+		}
+	}
+}
+
+type FriendList = APIResponse['userId']['friendList']
+
+function renderFriendList(friendlist: FriendList) {
+	//...
+}
+
+// 任何结构(对象, 类构造方法或类的实例)和数组都可以"键入",单个好友类型可声明如此
+type Friend = FriendList['friends'][number]
+
+
+// keyof运算符: 获取对象类型所有键的类型, 合并为一个字符串字面量类型
+type ResponseKeys = keyof APIResponse // 'user'
+type UserKeys = keyof APIResponse['user'] // 'userId' | 'friendList'
+
+
+// Record类型: 描述有映射关系的对象
+
+// 比如我需要一个对象，有 ABC 三个属性，属性的值必须是数字，那么就这么写：
+type keys = 'A' | 'B' | 'C'
+const result: Record<keys, number> = {
+  A: 1,
+  B: 2,
+  C: 3
+}
+
+interface PageInfo {
+  title: string
+}
+
+type Page = "home" | "about" | "contact";
+
+const nav: Record<Page, PageInfo> = {
+  about: { title: "about" },
+  contact: { title: "contact" },
+  home: { title: "home" },
+}
+
+// 映射类型: Record类型的超类型
+
+// Record类型实现来自于映射类型
+type Record<K extends keyof any, T> = {
+	[P in K]: T
+}
+
+type Account = {
+	id: number
+	isEmployee: boolean
+	notes: string
+}
+
+// 所有字段可选
+type OptionalAccount = {
+	[K in keyof Account]?: Account[K]
+}
+
+// 所有字段都可为null 
+type NullableAccount = {
+	[K in keyof Account]?: Account[K] | null
+}
+
+// 所有字段都是只读
+type ReadonlyAccount = {
+	readonly [K in keyof Account]?: Account[K]
+}
+
+// 所有字段都是可写(等同于Account)
+// '-'减号运算符: 撤销readonly修饰符, 还原为必须的和可写的的
+type Account2 = {
+	-readonly [K in keyof ReadonlyAccount]?: Account[K]
+}
+
+// 内置的映射类型
+
+Record<Keys, Values> // 键的类型为Keys, 值的类型为Values对象
+
+Partial<Object> // Object每个字段标记为可选
+
+Required<Object> // Object每个字段标记为必选
+
+Readonly<Object> // Object每个字段标记为只读
+
+Pick<Object, Keys> // 返回Object子类型, 只含指定Keys
+
+
+// 伴生对象模式: 把同名的对象和类配对在一起, ts中则为类型和对象配对使用
+// ts的类型和值分别在不同的命名空间中, 意味在同一个作用域中可以有同名的类型和值
+type Currency = {
+	unit: 'EUR' | 'GBP' | 'JPY' | 'USD'
+	value: number
+}
+
+let Currency = {
+	DEFAULT: 'USD',
+	from(value: number, unit = Currency.DEFAULT): Currency {
+		return { value, unit }
+	} 
+}
+
+
+/* 函数类型进阶 */
+
+// 用户定义的类型防护措施
+function isString(a: unknown): boolean {
+	return typeof a === 'string'
+}
+isString('a') // true
+isString([7]) // false
+
+// it's OK
+
+function parseInput(input: string | number) {
+	let formattedInput: string
+	if(isString(input)) {
+		return input.toUpperCase() // Error Property 'toUpperCase' does not exist on type 'number'
+	}	
+}
+
+// 类型细化只存在当前作用域, isString中typeof可生效, 但在parseInput新作用域类型细化无法转移
+// isString默认返回为布尔值, 需告知类型检查器返回为true时, 表明传给isString函数为字符串, so定义类型防护措施如下
+function isString(a: unknown): a is string {
+	return typeof a === 'string'
+}
+
+//定义类型防护措施只限一个参数, 但不限于类型
+type LegacyDialog
+type Dialog
+
+function isLegacyLog(dialog: LegacyDialog | Dialog): dialog is LegacyDialog {
+	//
+}
+
+
+
+
+
+
+
+
+
 
 
 
