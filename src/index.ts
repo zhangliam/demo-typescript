@@ -784,9 +784,76 @@ function isString(a: unknown): a is string {
 type LegacyDialog
 type Dialog
 
-function isLegacyLog(dialog: LegacyDialog | Dialog): dialog is LegacyDialog {
+function isLegacyLog(dialog: LegacyDsialog | Dialog): dialog is LegacyDialog {
 	//
 }
+
+// 类型断言(Type Assertion)可以用来手动指定一个值的类型。值 as 类型
+function formatInput(input: string) {
+	//...
+}
+function getUserInput(): string | number {
+	//...
+}
+let input = getUserInput()
+
+formatInput(input as string) // 使用类型断言as告诉ts, input为字符串, 而不是string | number类型 
+
+formatInput(<string>input) // 类型断言旧语法
+
+
+// 非空断言: 即 T | null 或者 T | null | undefined
+	
+type Dialog = {
+	id?: string
+}
+
+function removeFromDOM(dialog: Dialog, element: Element) {
+	// element.parentNode.removeChild(element) // Error Object is possibly 'null'
+	element.parentNode!.removeChild(element)
+	delete dialog.id
+}
+
+function closeDialog(dialog: Dialog) {
+	if(!dialog.id) {
+		return
+	}
+	setTimeout(() => {
+		removeFromDOM(
+			dialog,
+			// document.getElementById(dialog.id)) // Error 'String | undefined' is not assignable to parameter of type 'string'
+			document.getElementById(dialog.id!)!
+		)
+	})
+}
+// '!' 运算符
+// 告诉ts确定 dialog.id & document.getElementById & element.parentNode已得到定义,在可能为null or undefined类型值后面加上非空断言运算符
+
+
+// 如果代码中频繁使用'!'运算符就得考虑下代码重构了, 以下利用并集去改写dialog
+
+type VisableDialog = { id: string }
+type DestroyedDialog = {}
+
+type Dialog = VisableDialog | DestroyedDialog
+
+function removeFromDOM(dialog: VisableDialog, element: Element) {
+	element.parentNode!.removeChild(element)
+	delete dialog.id
+}
+
+function closeDialog(dialog: Dialog) {
+	if(!('id' in dialog)) {
+		return
+	}
+	setTimeout(() => {
+		removeFromDOM(
+			dialog,
+			document.getElementById(dialog.id)!
+		)
+	})
+}
+
 
 
 
