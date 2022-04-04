@@ -784,7 +784,7 @@ function isString(a: unknown): a is string {
 type LegacyDialog
 type Dialog
 
-function isLegacyLog(dialog: LegacyDsialog | Dialog): dialog is LegacyDialog {
+function isLegacyLog(dialog: LegacyDialog | Dialog): dialog is LegacyDialog {
 	//
 }
 
@@ -853,6 +853,91 @@ function closeDialog(dialog: Dialog) {
 		)
 	})
 }
+
+
+/* 处理回调 */
+
+import * as fs from 'fs'
+
+// 从Apache服务器访问日志中读取数据
+fs.readFile(
+	'/var/log/apache2/log',
+	{ encoding: 'utf8' },
+	(error, data) => {
+		if(error) {
+			console.error('error reading!', error)
+			return
+		}
+		console.log('success reading', data)
+	}
+)
+
+fs.appendFile(
+	'/var/log/apache2/log',
+	'New access log entry',
+	error => {
+		if(error) {
+			console.log('error writing!', error)
+		}
+	}
+)
+
+function appendAndReadPromise(path: string, data: string): Promise<string> {
+	return appendPromise(path, data)
+		.then(() => readPromise(path))
+		.catch(error = console.error(error))
+}
+
+function appendAndRead(
+	path: string,
+	data: string,
+	cb: ( error: Error | null, resultn: String | null ) => void
+) {
+	appendFile(path, data, error => {
+		if(error) {
+			return cb(error, null)
+		}
+		readFile(path, (error, result) => {
+			if(error) {
+				return cb(error, null)
+			}
+			cb(null, result)
+		})
+	})
+}
+
+// Promise
+
+// Node.js读取文件方法 readFile(path, (error, result) => { ... })
+
+type Executor<T, E extends Error> = {
+	resolve: (result: T) => void,
+	reject: (error: E) => void
+} => void
+
+class Promise<T, E extends Error> {
+	constructor(f: Executor<T, E>) {}
+	then<U, F extends Error>( g:(result: T) => Promise<U, F>): Promise<U, F>
+	catch<U, F extends Error>( g:(error: E) => Promise<U, F>): Promise<U, F>
+}
+
+function readFilePromise(path: string): Promise<string> {
+	return new Promise( (resolve, reject) => {
+		readFile(path, (error, result) => {
+			if(error) {
+				reject(error)
+			} else {
+				resolve(result)
+			}
+		})
+	})
+}
+
+
+
+
+
+
 
 
 
