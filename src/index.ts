@@ -910,15 +910,15 @@ function appendAndRead(
 
 // Node.js读取文件方法 readFile(path, (error, result) => { ... })
 
-type Executor<T, E extends Error> = {
+type Executor<T> = {
 	resolve: (result: T) => void,
-	reject: (error: E) => void
+	reject: (error: unknown) => void
 } => void
 
-class Promise<T, E extends Error> {
-	constructor(f: Executor<T, E>) {}
-	then<U, F extends Error>( g:(result: T) => Promise<U, F>): Promise<U, F>
-	catch<U, F extends Error>( g:(error: E) => Promise<U, F>): Promise<U, F>
+class Promise<T> {
+	constructor(f: Executor<T>) {}
+	then<U>( g:(result: T) => Promise<U>): Promise<U>
+	catch<U>( g:(error: unknown) => Promise<U>): Promise<U>
 }
 
 function readFilePromise(path: string): Promise<string> {
@@ -932,6 +932,77 @@ function readFilePromise(path: string): Promise<string> {
 		})
 	})
 }
+
+
+/* React 函数组件&类组件 */
+
+// 函数组件
+type Props = {
+	isDisabled?: boolean
+	size: 'big' | 'small'
+	text: string,
+	onClick(event: React.MouseEvent<HTMLButtonElement>): void
+}
+
+export function FancyButton(prop: Props) {
+	const [toggled, setToggled] = React.useState(false)
+	return <button
+		className = { 'Size' + prop.size }
+		disable = { prop.isDisabled || false }
+		onClick = { event => {
+			setToggled(!toggled)
+			prop.onClick(event)
+		}}
+	>{ prop.text }</button>
+}
+
+let button = <FancyButton
+	size='big'
+	text='sign up now'
+	onClick={() => console.log('Clicked')}
+/>
+
+
+// 类组件
+type Props = {
+	firstName: string
+	userId: string
+}
+
+type State = {
+	isLoading: boolean
+}
+
+class SignupForm extends React.Component<Props, State> {
+	state = {
+		isLoading: false
+	}
+	render() {
+		return <>
+			<h2>Sign upn {this.props.firstName}</h2>
+			<FancyButton
+				isDisabled={this.state.isLoading}
+				size='big'
+				text='sign up now'	
+				onClick={this.singUp}
+			/>
+		</>
+	}
+	private singUp = async() => {
+		this.setState({ isLoading: true })
+		try {
+			await fetch('/api/signup?userId=' + this.props.userId)
+		} finally {
+			this.setState({isLoading: false})
+		}
+	}
+}
+
+let form = <SignupForm firstName='Liam' userId='9527' />
+
+
+
+
 
 
 
