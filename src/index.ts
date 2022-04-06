@@ -979,7 +979,7 @@ class SignupForm extends React.Component<Props, State> {
 	}
 	render() {
 		return <>
-			<h2>Sign upn {this.props.firstName}</h2>
+			<h2>Sign up {this.props.firstName}</h2>
 			<FancyButton
 				isDisabled={this.state.isLoading}
 				size='big'
