@@ -1,7 +1,6 @@
 
-/* 类和接口 */
+/* 类 */
 
-// ------ 类:
 type Color = 'Black' | 'White'
 type File = 'A' | 'B' | 'C' | 'D' | 'E' | 'F'
 type Rank = 1 | 2 | 3 | 4 | 5 | 6
@@ -65,7 +64,8 @@ class King extends Piece {
 class Queen extends Piece {}
 
 
-// ------ 接口:
+/* 接口 */
+
 
 type Food = {
 	calories: number
@@ -93,15 +93,26 @@ interface Cake extends Food {
 }
 
 
-/*
+// --- 类和接口区别
 
-类和接口区别
-1. 类型别名更通用(类型表达式&,|诸如此类), 接口声明则不行右侧必须为结构
-2. 扩展接口赋值的检查(属性类型不同也会报错)
-3. 声明合并
-*/ 
+// 类型别名更通用(类型表达式&,|诸如此类), 接口声明则不行右侧必须为结构, 以下不能使用接口重写
+type A = number
+type B = A | string
 
-// 声明合并
+
+//扩展接口赋值的检查(属性类型不同也会报错)
+interface A {
+	good(x: number): string
+	bad(x: number): string
+}
+
+interface B extends interface A {
+	good(x: string | number): string
+	bad(x: string): string  // Error 交集类型则不会出现此问题, 该接口换成类型别名, extends 换成 & 最差也是重载
+}
+
+
+//声明合并
 interface User {
 	name: string
 }
@@ -129,6 +140,7 @@ interface Feline() {
 	meow(): void
 }
 
+// implements => 该类满足某个接口
 class Cat implements Animal, Feline {
 	name: 'Whiskers'
 
@@ -144,6 +156,7 @@ class Cat implements Animal, Feline {
 		console.log('meow~')
 	}
 }
+
 
 /* 
 	Q: 实现接口or扩展抽象类
@@ -231,6 +244,10 @@ class StringDatabase {
 // 综上, 类声明不仅在值层面和类型层面生成相关内容, 而且在类型层面生成了两部门内容: 一部分表示类的实例，另一部分表示类的构造方法
 
 
+
+
+
+
 // ------ 混入
 class User {
 	private id: string = '3'
@@ -278,6 +295,10 @@ class HardToDebugUser {
 let mixinUser = withEzDebug(HardToDebugUser)
 let insmixinUser = new mixinUser(3, 'Emma', 'Gluzman')
 insmixinUser.debug()
+
+
+
+
 
 
 // ------ 类实现常见设计模式
@@ -350,6 +371,12 @@ class MessageQueue {
 }
 
 
+
+
+
+
+
+
 /* 类型进阶 */
 
 // ------ 函数型变
@@ -409,6 +436,7 @@ function parseWidth(width: number | string | null | undefined): Width | null {
 	}
 
 }
+
 
 
 /* 对象类型进阶 */
@@ -661,7 +689,7 @@ function appendAndReadPromise(path: string, data: string): Promise<string> {
 function appendAndRead(
 	path: string,
 	data: string,
-	cb: ( error: Error | null, resultn: String | null ) => void
+	cb: ( error: Error | null, result: String | null ) => void
 ) {
 	appendFile(path, data, error => {
 		if(error) {
@@ -688,7 +716,7 @@ type Executor<T> = {
 class Promise<T> {
 	constructor(f: Executor<T>) {}
 	then<U>( g:(result: T) => Promise<U>): Promise<U>
-	catch<U>( g:(error: unknown) => Promise<U>): Promise<U>
+	catch<U>( g:(error: unknown) => Promise<U> ): Promise<U>
 }
 
 function readFilePromise(path: string): Promise<string> {
